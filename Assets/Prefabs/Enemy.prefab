@@ -171,4 +171,5 @@ MonoBehaviour:
   _spriteRenderer: {fileID: 4253720047419600253}
   _movementSpeed: 0.25
   _rigidbody: {fileID: 3900473695731692433}
+  _defeatClip: {fileID: 8300000, guid: da601851a299d9d42b6b3b6fa020d199, type: 3}
   _player: {fileID: 0}

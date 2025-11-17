@@ -1,3 +1,4 @@
+using Common;
 using MonsterCouchTest.Zenject.Signals;
 using System;
 using UnityEngine;
@@ -12,27 +13,33 @@ public class Enemy : MonoBehaviour
     [SerializeField]
     private Rigidbody2D _rigidbody;
     [SerializeField]
+    private AudioClip _defeatClip;
+    [SerializeField]
     private GameObject _player;
     
     private bool _caught = false;
 
     [Inject]
     private SignalBus _signalBus;
+    private AudioManager _audioManager;
 
     public void OnActive()
     {
         gameObject.SetActive(true);
     }
 
-    internal void Init(GameObject player, SignalBus signalBus)
+    internal void Init(GameObject player, SignalBus signalBus, AudioManager audioManager)
     {
         _signalBus = signalBus;
         _player = player;
+        _audioManager = audioManager;
+
     }
 
     internal void OnRelease()
     {
         _spriteRenderer.color = Color.black;
+        _audioManager.PlayAudio(_defeatClip);
     }
 
     internal void SetPlayer(GameObject player)

@@ -4,94 +4,99 @@ using UnityEngine;
 using UnityEngine.Pool;
 using Zenject;
 
-public class EnemyManager : MonoBehaviour
+namespace MonsterCouchTest.Zenject.Game
 {
-    const int enemyCount = 1000;
-
-    [SerializeField]
-    private Enemy _enemyPrefab;
-    [SerializeField]
-    private Transform _enemyParent;
-    [SerializeField]
-    private Collider2D spawnArea;
-    [SerializeField]
-    private GameObject _player;
-    protected ObjectPool<Enemy> enemyPool;
-
-    [Inject]
-    SignalBus signalBus;
-
-    private void OnEnable()
+    public class EnemyManager : MonoBehaviour
     {
-        signalBus.Subscribe<EnemyDefeatedSignal>(OnEnemyDefeated);
-    }
+        const int enemyCount = 1000;
 
-    private void OnEnemyDefeated(EnemyDefeatedSignal args)
-    {
-        args.SignalOrigin.OnRelease();
-    }
+        [SerializeField]
+        private Enemy _enemyPrefab;
+        [SerializeField]
+        private Transform _enemyParent;
+        [SerializeField]
+        private Collider2D spawnArea;
+        [SerializeField]
+        private GameObject _player;
+        protected ObjectPool<Enemy> enemyPool;
 
-    private void OnDisable()
-    {
-        signalBus.Unsubscribe<EnemyDefeatedSignal>(OnEnemyDefeated);
-    }
+        [Inject]
+        SignalBus signalBus;
+        [Inject]
+        AudioManager _audioManager;
 
-    private void Start()
-    {
-        enemyPool = new ObjectPool<Enemy>(
-            createFunc: () => CreateNewEnemy(),
-            actionOnGet: (enemy) => SetEnemy(enemy),
-            actionOnRelease: (enemy) => enemy.OnRelease(),
-            actionOnDestroy: (enemy) => Destroy(enemy.gameObject),
-            collectionCheck: false,
-            defaultCapacity: 10,
-            maxSize: 1000
-        );
-        SpawnEnemies();
-    }
-
-    private void SpawnEnemies()
-    {
-        do
+        private void OnEnable()
         {
-            Enemy enemy = enemyPool.Get();
+            signalBus.Subscribe<EnemyDefeatedSignal>(OnEnemyDefeated);
         }
-        while (enemyCount > enemyPool.CountActive);
-    }
 
-    private void SetEnemy(Enemy enemy)
-    {
-        enemy.transform.position = GetRandomPositionInCollider(spawnArea);
-        enemy.Init(_player, signalBus);
-        enemy.OnActive();
-    }
-
-    private Vector3 GetRandomPositionInCollider(Collider2D collider)
-    {
-        Bounds bounds = collider.bounds;
-        Vector3 min = bounds.min;
-        Vector3 max = bounds.max;
-
-        Vector3 randomPoint;
-        int maxAttempts = 10;
-        int attempts = 0;
-
-        do
+        private void OnEnemyDefeated(EnemyDefeatedSignal args)
         {
-            float x = UnityEngine.Random.Range(min.x, max.x);
-            float y = UnityEngine.Random.Range(min.y, max.y);
-            randomPoint = new Vector3(x, y);
-            attempts++;
+            args.SignalOrigin.OnRelease();
         }
-        while (!collider.bounds.Contains(randomPoint) && attempts < maxAttempts);
 
-        return collider.ClosestPoint(randomPoint);
-    }
+        private void OnDisable()
+        {
+            signalBus.Unsubscribe<EnemyDefeatedSignal>(OnEnemyDefeated);
+        }
 
-    private Enemy CreateNewEnemy()
-    {
-        Enemy enemy = Instantiate(_enemyPrefab, _enemyParent);
-        SetEnemy(enemy);
-        return enemy;
+        private void Start()
+        {
+            enemyPool = new ObjectPool<Enemy>(
+                createFunc: () => CreateNewEnemy(),
+                actionOnGet: (enemy) => SetEnemy(enemy),
+                actionOnRelease: (enemy) => enemy.OnRelease(),
+                actionOnDestroy: (enemy) => Destroy(enemy.gameObject),
+                collectionCheck: false,
+                defaultCapacity: 10,
+                maxSize: 1000
+            );
+            SpawnEnemies();
+        }
+
+        private void SpawnEnemies()
+        {
+            do
+            {
+                Enemy enemy = enemyPool.Get();
+            }
+            while (enemyCount > enemyPool.CountActive);
+        }
+
+        private void SetEnemy(Enemy enemy)
+        {
+            enemy.transform.position = GetRandomPositionInCollider(spawnArea);
+            enemy.Init(_player, signalBus, _audioManager);
+            enemy.OnActive();
+        }
+
+        private Vector3 GetRandomPositionInCollider(Collider2D collider)
+        {
+            Bounds bounds = collider.bounds;
+            Vector3 min = bounds.min;
+            Vector3 max = bounds.max;
+
+            Vector3 randomPoint;
+            int maxAttempts = 10;
+            int attempts = 0;
+
+            do
+            {
+                float x = UnityEngine.Random.Range(min.x, max.x);
+                float y = UnityEngine.Random.Range(min.y, max.y);
+                randomPoint = new Vector3(x, y);
+                attempts++;
+            }
+            while (!collider.bounds.Contains(randomPoint) && attempts < maxAttempts);
+
+            return collider.ClosestPoint(randomPoint);
+        }
+
+        private Enemy CreateNewEnemy()
+        {
+            Enemy enemy = Instantiate(_enemyPrefab, _enemyParent);
+            SetEnemy(enemy);
+            return enemy;
+        }
     }
 }
