@@ -1,6 +1,8 @@
+using MonsterCouchTest.Zenject.Signals;
 using System;
 using UnityEngine;
 using UnityEngine.Pool;
+using Zenject;
 
 public class EnemyManager : MonoBehaviour
 {
@@ -11,9 +13,28 @@ public class EnemyManager : MonoBehaviour
     [SerializeField]
     private Transform _enemyParent;
     [SerializeField]
-    public Collider2D spawnArea;
-
+    private Collider2D spawnArea;
+    [SerializeField]
+    private GameObject _player;
     protected ObjectPool<Enemy> enemyPool;
+
+    [Inject]
+    SignalBus signalBus;
+
+    private void OnEnable()
+    {
+        signalBus.Subscribe<EnemyDefeatedSignal>(OnEnemyDefeated);
+    }
+
+    private void OnEnemyDefeated(EnemyDefeatedSignal args)
+    {
+        args.SignalOrigin.OnRelease();
+    }
+
+    private void OnDisable()
+    {
+        signalBus.Unsubscribe<EnemyDefeatedSignal>(OnEnemyDefeated);
+    }
 
     private void Start()
     {
@@ -41,6 +62,7 @@ public class EnemyManager : MonoBehaviour
     private void SetEnemy(Enemy enemy)
     {
         enemy.transform.position = GetRandomPositionInCollider(spawnArea);
+        enemy.SetPlayer(_player);
         enemy.OnActive();
     }
 
