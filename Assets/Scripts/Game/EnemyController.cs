@@ -62,7 +62,7 @@ public class EnemyManager : MonoBehaviour
     private void SetEnemy(Enemy enemy)
     {
         enemy.transform.position = GetRandomPositionInCollider(spawnArea);
-        enemy.SetPlayer(_player);
+        enemy.Init(_player, signalBus);
         enemy.OnActive();
     }
 
